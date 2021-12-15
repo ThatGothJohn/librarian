@@ -14,6 +14,6 @@ int main(int argc, char** argv){
     printf_s("\n");
     const char* dll_to_inject = "C://temp/demo.dll";
 
-    injectDLL(dll_to_inject,PID);
+    return injectDLL(dll_to_inject,PID);
 }
 

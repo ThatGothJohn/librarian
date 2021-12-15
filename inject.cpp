@@ -19,7 +19,7 @@ int injectDLL(const char* dll_path, int PID){
     }
 
     //allocate a new memory region inside the process's address space
-    LPVOID mem_alloc = VirtualAllocEx(proc, nullptr, strlen(dll_path), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    LPVOID mem_alloc = VirtualAllocEx(proc, nullptr, strlen(dll_path)+1, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     if (!mem_alloc) {
         printf_s("ERROR: Memory could not be allocated inside the given process");
         return -1;
