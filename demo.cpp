@@ -6,9 +6,9 @@
 #include <cstdio>
 #include <windows.h>
 
-INT APIENTRY Demo(HMODULE hDLL, DWORD Reason, LPVOID Reserved){
+BOOL WINAPI DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved){
     FILE *file;
-    fopen_s(&file, "C://temp.txt", "a+");
+    fopen_s(&file, "injected_log.txt", "a+");
 
     switch (Reason) {
         case DLL_PROCESS_ATTACH:
@@ -24,8 +24,9 @@ INT APIENTRY Demo(HMODULE hDLL, DWORD Reason, LPVOID Reserved){
             fprintf_s(file, "DLL_THREAD_DET"
                             "ACH function called\n");
             break;
+        DEFAULT_UNREACHABLE;
     }
 
     fclose(file);
-    return 0;
+    return true;
 }
