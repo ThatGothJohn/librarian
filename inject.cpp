@@ -44,7 +44,5 @@ int injectDLL(const char* dll_path, int PID){
     printf_s("Remote Thread created!\nDLL successfully injected.");
     CloseHandle(proc);
 
-
-    getchar();
     return 0;
 }
