@@ -122,7 +122,7 @@ bool librarian::hook64(void* hook_addr, void* function_to_inject) {
     memcpy_s(&jump_absolute[2], 8, &function_to_inject, 8);
     memcpy_s(relay_addr, PAGE_SIZE, jump_absolute, sizeof(jump_absolute));
 
-    if (!hook32(hook_addr, (void*)((uint64_t)relay_addr+(13*8)))){
+    if (!hook32(hook_addr, relay_addr)){
         return false;
     }
 
