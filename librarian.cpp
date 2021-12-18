@@ -32,7 +32,7 @@ int librarian::injectDLL(const char* dll_path, int PID){
         printf_s("ERROR: No bytes were written into the process's address space");
         return -1;
     }
-    printf_s("Successfully wrote %i Bytes\n", num_bytes_written);
+    printf_s("Successfully wrote %I64i Bytes\n", num_bytes_written);
 
     //inject the dll into the process's address space
     HANDLE thread_ID = CreateRemoteThread(proc, nullptr, 0, (LPTHREAD_START_ROUTINE) LoadLibraryA_addr, mem_alloc,
@@ -71,7 +71,7 @@ void* librarian::allocate_close_page(void* target){
     GetSystemInfo(&sys_info);
     const DWORD PAGE_SIZE = sys_info.dwPageSize;    //get the page size
 
-    uint64_t start_addr = (uint64_t)(target) & ~(PAGE_SIZE - 1); //the address of the page boundary that is before the target
+    uint64_t start_addr = (uint64_t)(target) & ~((uint64_t)PAGE_SIZE - 1); //the address of the page boundary that is before the target
     uint64_t lowest_addr = min(start_addr - 0x7FFFFF00, (uint64_t)sys_info.lpMinimumApplicationAddress);
     uint64_t highest_addr = max(start_addr + 0x7FFFFF00, (uint64_t)sys_info.lpMaximumApplicationAddress);
 
@@ -122,7 +122,7 @@ bool librarian::hook64(void* hook_addr, void* function_to_inject) {
     memcpy_s(&jump_absolute[2], 8, &function_to_inject, 8);
     memcpy_s(relay_addr, PAGE_SIZE, jump_absolute, sizeof(jump_absolute));
 
-    if (!hook32(hook_addr, relay_addr)){
+    if (!hook32(hook_addr, (void*)((uint64_t)relay_addr+(13*8)))){
         return false;
     }
 
