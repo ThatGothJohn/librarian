@@ -55,18 +55,77 @@ bool librarian::hook32(void* hook_addr, void* function_to_inject) {
     bool success = true;
     errno_t num_of_errors = 0;
     DWORD old_protection;
-    success &= VirtualProtect(hook_addr, PAGE_SIZE, PAGE_EXECUTE_READWRITE, &old_protection); //allow writing to the hook_addr
+    success &= VirtualProtect(hook_addr, PAGE_SIZE, PAGE_EXECUTE_READWRITE, &old_protection); //allow writing to the hook_addr's page
     uint8_t jump_ins [5] = {0xE9, 0x0, 0x0, 0x0, 0x0};
-    const uint32_t relative_addr = (uint32_t)function_to_inject - ((uint32_t)hook_addr + 5); //compute the relative jump
+    const auto relative_addr = (uint32_t)((uint64_t)function_to_inject - ((uint64_t)hook_addr + 5)); //compute the relative jump
     num_of_errors += memcpy_s(jump_ins+1, 4, &relative_addr, 4);
     num_of_errors += memcpy_s(hook_addr, 5, jump_ins, 5);    //write the jmp to the hook_addr
     success &= VirtualProtect(hook_addr, PAGE_SIZE, old_protection, nullptr); //reinstate the previous write protection
     return success && num_of_errors == 0;   //fixme(John): we should really exit this function upon reaching an error
 }
 
-bool librarian::hook64(void* hook_addr, void* funtion_to_inject) {
-    //Unimplemented
-    return false;
+///allocates the closest free page within a 32-bit distance to the target, or returns nullptr
+void* librarian::allocate_close_page(void* target){
+    //TODO(John): refactor this function
+    SYSTEM_INFO sys_info;
+    GetSystemInfo(&sys_info);
+    const DWORD PAGE_SIZE = sys_info.dwPageSize;    //get the page size
+
+    uint64_t start_addr = (uint64_t)(target) & ~(PAGE_SIZE - 1); //the address of the page boundary that is before the target
+    uint64_t lowest_addr = min(start_addr - 0x7FFFFF00, (uint64_t)sys_info.lpMinimumApplicationAddress);
+    uint64_t highest_addr = max(start_addr + 0x7FFFFF00, (uint64_t)sys_info.lpMaximumApplicationAddress);
+
+    uint64_t start_page = (start_addr - (start_addr % PAGE_SIZE)); //the address of the start of the page the target is in
+
+    uint64_t page_offset = 1;
+    bool failed = false;
+    while (!failed)
+    {
+        uint64_t byte_offset = page_offset * PAGE_SIZE;
+        uint64_t high_addr = start_page + byte_offset;
+        uint64_t low_addr = (start_page > byte_offset) ? start_page - byte_offset : 0;
+
+        failed = high_addr > highest_addr && low_addr < lowest_addr;
+
+        if (high_addr < highest_addr)
+        {
+            void* return_addr = VirtualAlloc((void*)high_addr, PAGE_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+            if (return_addr != nullptr)
+                return return_addr;
+        }
+
+        if (low_addr > lowest_addr)
+        {
+            void* return_addr = VirtualAlloc((void*)low_addr, PAGE_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+            if (return_addr != nullptr)
+                return return_addr;
+        }
+
+        page_offset++;
+    }
+
+    return nullptr;
+}
+
+bool librarian::hook64(void* hook_addr, void* function_to_inject) {
+    SYSTEM_INFO sys_info;
+    GetSystemInfo(&sys_info);
+    const DWORD PAGE_SIZE = sys_info.dwPageSize;    //get the page size
+
+    void* relay_addr = librarian::allocate_close_page(hook_addr);
+    if (relay_addr == nullptr)
+        return false;
+    uint8_t jump_absolute [] = {0x49, 0xBA, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, //mov r10, 0x0 (will be replaced with the injected function addr)
+                                0x41, 0xFF, 0xE2  //jmp r10
+    };
+    memcpy_s(&jump_absolute[2], 8, &function_to_inject, 8);
+    memcpy_s(relay_addr, PAGE_SIZE, jump_absolute, sizeof(jump_absolute));
+
+    if (!hook32(hook_addr, relay_addr)){
+        return false;
+    }
+
+    return true;
 }
 
 int librarian::trampoline(void* hook_addr, void* function_to_inject){

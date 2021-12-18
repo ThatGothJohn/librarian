@@ -18,5 +18,7 @@ namespace librarian {
 
     int trampoline(void*, void*);
 
+    void* allocate_close_page(void*);
+
 }
 #endif //LIBRARIAN_H
