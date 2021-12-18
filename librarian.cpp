@@ -122,9 +122,13 @@ bool librarian::hook64(void* hook_addr, void* function_to_inject) {
     memcpy_s(&jump_absolute[2], 8, &function_to_inject, 8);
     memcpy_s(relay_addr, PAGE_SIZE, jump_absolute, sizeof(jump_absolute));
 
-    if (!hook32(hook_addr, relay_addr)){
-        return false;
-    }
+    DWORD old_protection;
+    VirtualProtect(hook_addr, PAGE_SIZE, PAGE_EXECUTE_READWRITE, &old_protection); //allow writing to the hook_addr's page
+    uint8_t jump_relative [5] = {0xE9, 0x0, 0x0, 0x0, 0x0};
+    const auto relative_addr = ((uint64_t)relay_addr - ((uint64_t)hook_addr + 5)); //compute the relative jump
+    memcpy_s(jump_relative + 1, 4, &relative_addr, 4);
+    memcpy_s(hook_addr, 5, jump_relative, 5);    //write the jmp to the hook_addr
+    VirtualProtect(hook_addr, PAGE_SIZE, old_protection, nullptr); //reinstate the previous write protection
 
     return true;
 }
