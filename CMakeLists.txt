@@ -6,7 +6,7 @@ project(runnable)
 set(CMAKE_CXX_STANDARD 20)
 
 add_library(demo SHARED
-        demo.cpp)
+        demo.cpp librarian)
 add_library(librarian SHARED
         librarian.cpp)
 add_executable(runnable
