@@ -52,7 +52,7 @@ bool librarian::hook32(void* hook_addr, void* function_to_inject) {
     GetSystemInfo(&sys_info);
     const DWORD PAGE_SIZE = sys_info.dwPageSize;
 
-    bool success = true;
+    BOOL success = true;
     errno_t num_of_errors = 0;
     DWORD old_protection;
     success &= VirtualProtect(hook_addr, PAGE_SIZE, PAGE_EXECUTE_READWRITE, &old_protection); //allow writing to the hook_addr's page

@@ -5,6 +5,7 @@
 //demo Dll
 #include <cstdio>
 #include <windows.h>
+#include "librarian.h"
 
 BOOL WINAPI DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved){
     FILE *file;
@@ -13,6 +14,7 @@ BOOL WINAPI DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved){
     switch (Reason) {
         case DLL_PROCESS_ATTACH:
             fprintf_s(file, "DLL_PROCESS_ATTACH function called\n");
+            librarian::hook32(nullptr,nullptr);
             break;
         case DLL_PROCESS_DETACH:
             fprintf_s(file, "DLL_PROCESS_DETACH function called\n");

@@ -12,7 +12,7 @@ int main(int argc, char** argv){
     if(argc == 3){
         long PID = atol(argv[2]);
 //        printf_s("Given PID: %i\nGiven DLL PATH: %s\n", PID, argv[1]);
-        injectDLL(argv[1],PID);
+        librarian::injectDLL(argv[1],PID);
         return 0;
     } else {
         printf_s("Usage: %s PATH_TO_DLL PID\n", argv[0]);
