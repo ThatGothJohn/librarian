@@ -9,12 +9,11 @@
 
 BOOL WINAPI DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved){
     FILE *file;
-    fopen_s(&file, "injected_log.txt", "a+");
+    fopen_s(&file, "/temp/injected_log.txt", "a+");
 
     switch (Reason) {
         case DLL_PROCESS_ATTACH:
-            fprintf_s(file, "DLL_PROCESS_ATTACH function called\n");
-            librarian::hook32(nullptr,nullptr);
+            fprintf_s(file, "DLL_PROCESS_ATTACH function called, process base addr: %i\n", (int)librarian::get_base_addr_for_current_process());
             break;
         case DLL_PROCESS_DETACH:
             fprintf_s(file, "DLL_PROCESS_DETACH function called\n");
@@ -23,8 +22,7 @@ BOOL WINAPI DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved){
             fprintf_s(file, "DLL_THREAD_ATTACH function called\n");
             break;
         case DLL_THREAD_DETACH:
-            fprintf_s(file, "DLL_THREAD_DET"
-                            "ACH function called\n");
+            fprintf_s(file, "DLL_THREAD_DETACH function called\n");
             break;
         DEFAULT_UNREACHABLE;
     }

@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <cstdio>
 #include <cstdint>
+#include <Psapi.h>
 
 namespace librarian {
 
@@ -19,6 +20,8 @@ namespace librarian {
     int trampoline(void*, void*);
 
     void* allocate_close_page(void*);
+
+    uint64_t get_base_addr_for_current_process();
 
 }
 #endif //LIBRARIAN_H

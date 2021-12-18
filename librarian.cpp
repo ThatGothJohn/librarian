@@ -108,6 +108,7 @@ void* librarian::allocate_close_page(void* target){
 }
 
 bool librarian::hook64(void* hook_addr, void* function_to_inject) {
+    //TODO(John): test this function, I think I fucked up somewhere
     SYSTEM_INFO sys_info;
     GetSystemInfo(&sys_info);
     const DWORD PAGE_SIZE = sys_info.dwPageSize;    //get the page size
@@ -126,6 +127,35 @@ bool librarian::hook64(void* hook_addr, void* function_to_inject) {
     }
 
     return true;
+}
+
+uint64_t librarian::get_base_addr_for_current_process() {
+    HANDLE current_proc = GetCurrentProcess();
+    HMODULE proc_modules[1024];
+
+    DWORD num_bytes_written = 0;
+    EnumProcessModules(current_proc, proc_modules, sizeof(HMODULE) * 1024, &num_bytes_written);
+
+    DWORD num_remote_modules = num_bytes_written / sizeof(HMODULE);
+    char proc_name[256];
+    GetModuleFileNameEx(current_proc, nullptr, proc_name, 256);
+    _strlwr_s(proc_name, 256);
+
+    HMODULE module = 0;
+
+    for (DWORD i = 0; i < num_remote_modules; i++){
+        char module_name[256];
+        char absolute_module_name[256];
+        GetModuleFileNameEx(current_proc, proc_modules[i], module_name, 256);
+
+        _fullpath(absolute_module_name, module_name, 256);
+        _strlwr_s(absolute_module_name, 256);
+
+        if (strcmp(proc_name, absolute_module_name) == 0){
+            return (uint64_t)proc_modules[i];
+        }
+    }
+    return 0;
 }
 
 int librarian::trampoline(void* hook_addr, void* function_to_inject){
