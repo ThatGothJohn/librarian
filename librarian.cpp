@@ -145,8 +145,6 @@ uint64_t librarian::get_base_addr_for_current_process() {
     GetModuleFileNameEx(current_proc, nullptr, proc_name, 256);
     _strlwr_s(proc_name, 256);
 
-    HMODULE module = 0;
-
     for (DWORD i = 0; i < num_remote_modules; i++){
         char module_name[256];
         char absolute_module_name[256];
