@@ -4,10 +4,9 @@
 #include <cstdio>
 #include <string>
 
-#include "inject.h"
+#include "librarian.h"
 
 //TODO(John): input validation and error handling
-///this will inject a dll using kernel32.dll, hopefully
 int main(int argc, char** argv){
 
     if(argc == 3){
