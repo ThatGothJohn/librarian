@@ -1,2 +1,2 @@
 # librarian
-A DLL injector written in C++
+A DLL injector and memory hooking library written in C++
